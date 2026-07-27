@@ -1,0 +1,88 @@
+# Setup
+
+이 문서는 CommerceFlow를 로컬에서 실행하고 검증하기 위한 기본 설정을 설명한다.
+
+## Gradle Wrapper
+
+Gradle Wrapper는 프로젝트에 포함되는 Gradle 실행 도구다.
+
+추가된 파일은 다음과 같다.
+
+```text
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.properties
+```
+
+로컬 PC에 Gradle이 설치되어 있지 않아도 아래 명령으로 빌드와 테스트를 실행할 수 있다.
+
+```powershell
+.\gradlew.bat test
+```
+
+macOS 또는 Linux 환경에서는 다음 명령을 사용한다.
+
+```bash
+./gradlew test
+```
+
+`gradle-wrapper.properties`에는 프로젝트가 사용할 Gradle 배포 버전이 기록된다. 이 프로젝트는 Gradle `8.10.2`를 사용한다.
+
+## Java Version
+
+명세 기준 Java 버전은 21이다. 현재 개발 PC에는 Java 22가 설치되어 있으므로, Gradle 설정에서 Java 21 호환 바이트코드가 생성되도록 `options.release = 21`을 사용한다.
+
+이 설정은 Java 22 런타임에서도 Java 21 대상 컴파일 결과를 만들기 위한 것이다. 운영 또는 CI 환경에서는 Java 21 사용을 우선한다.
+
+## Docker Compose
+
+Phase 0에서는 애플리케이션 실행에 필요한 최소 인프라만 Docker Compose에 포함한다.
+
+```text
+postgresql
+redis
+```
+
+실행 명령은 다음과 같다.
+
+```bash
+docker compose up -d
+```
+
+Windows에서는 Docker Desktop 엔진이 실행 중이어야 한다.
+
+Compose 문법 검증은 다음 명령으로 수행한다.
+
+```bash
+docker compose config
+```
+
+Kafka, Prometheus, Grafana는 명세에 포함되어 있지만 Phase 0에서는 추가하지 않는다. 각 기능이 필요한 단계에서 설정과 검증을 함께 추가한다.
+
+## Spring Profiles
+
+설정 파일은 실행 환경별로 분리한다.
+
+```text
+application.yml
+application-local.yml
+application-test.yml
+```
+
+`application.yml`은 공통 설정을 담고, 기본 활성 프로필은 `local`이다.
+
+`application-local.yml`은 로컬 PostgreSQL과 Redis 연결 설정을 담는다.
+
+`application-test.yml`은 테스트 실행을 위한 설정이다. 현재는 빠른 context 테스트를 위해 H2를 사용하고 Flyway를 비활성화한다. 운영과 유사한 통합 테스트가 필요한 단계에서는 Testcontainers PostgreSQL을 별도로 사용한다.
+
+## Verification
+
+현재 검증된 항목은 다음과 같다.
+
+```text
+docker compose config
+.\gradlew.bat test
+```
+
+PostgreSQL과 Redis 실제 연결 검증은 Docker Desktop 엔진 실행 후 진행한다.

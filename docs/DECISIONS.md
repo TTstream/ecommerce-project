@@ -1,0 +1,92 @@
+# Decisions
+
+이 문서는 프로젝트 진행 중 발생한 주요 기술 선택과 이유를 기록한다.
+
+## 1. Single Module First
+
+초기 구조는 단일 모듈 Spring Boot 프로젝트로 시작한다.
+
+이유는 다음과 같다.
+
+- 현재 단계에서는 도메인 경계보다 실행 가능한 기반 구축이 우선이다.
+- 멀티모듈은 빌드 설정과 의존성 관리 복잡도를 먼저 만든다.
+- 명세의 도메인들은 아직 코드로 충분히 드러나지 않았으므로, 실제 변경 이유 없이 모듈을 나누면 과한 추상화가 된다.
+- 포트폴리오 관점에서는 단일 모듈 안에서 도메인 중심 패키지를 명확히 잡고, 필요해지는 시점에 모듈 분리 근거를 문서화하는 편이 더 설득력 있다.
+
+현재 패키지 구조는 명세의 도메인 중심 구조를 따른다.
+
+```text
+com.portfolio.commerceflow
+├── common
+├── member
+├── product
+├── cart
+├── order
+├── payment
+├── coupon
+├── inventory
+├── notification
+├── batch
+└── admin
+```
+
+## 2. Gradle Wrapper
+
+Gradle Wrapper를 추가했다.
+
+이유는 다음과 같다.
+
+- 개발자 PC에 Gradle이 없어도 빌드할 수 있다.
+- CI 환경에서도 같은 Gradle 버전을 사용한다.
+- 프로젝트를 clone한 사람이 별도 Gradle 설치 없이 테스트를 실행할 수 있다.
+- 빌드 실패 원인을 로컬 Gradle 버전 차이에서 분리할 수 있다.
+
+현재 Wrapper 버전은 Gradle `8.10.2`다.
+
+## 3. .gitattributes
+
+`.gitattributes`를 추가했다.
+
+이 파일은 Git이 파일별 줄바꿈을 어떻게 관리할지 정의한다.
+
+Windows는 보통 `CRLF`, macOS/Linux는 `LF`를 사용한다. 이 차이 때문에 불필요한 diff가 생기거나, Linux에서 실행되는 `gradlew` 스크립트가 깨질 수 있다.
+
+현재 정책은 다음과 같다.
+
+```text
+Java, Gradle, YAML, Markdown, SQL, properties, gradlew: LF
+Windows batch 파일: CRLF
+```
+
+목적은 운영체제 차이로 인한 변경 노이즈를 줄이고, CI나 Linux 환경에서 wrapper 스크립트가 안정적으로 실행되도록 하는 것이다.
+
+## 4. Java 21 Target With Local Java 22
+
+명세는 Java 21을 요구한다.
+
+현재 로컬 PC에는 Java 22가 설치되어 있었다. Gradle toolchain을 Java 21로 강제하면 로컬에 Java 21이 없을 때 빌드가 실패한다.
+
+따라서 현재는 다음 방식을 선택했다.
+
+```gradle
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+```
+
+이 설정은 Java 22 컴파일러를 사용하더라도 Java 21 API와 바이트코드 수준을 대상으로 컴파일한다.
+
+향후 CI를 구성할 때는 Java 21을 명시적으로 설치하고, 필요하면 Gradle toolchain 설정으로 되돌릴 수 있다.
+
+## 5. Minimal Infrastructure in Phase 0
+
+Phase 0의 Docker Compose에는 PostgreSQL과 Redis만 포함했다.
+
+Kafka, Prometheus, Grafana도 최종 명세에는 포함되어 있지만, 아직 해당 기능을 사용하는 코드가 없다.
+
+초기부터 모든 인프라를 올리면 실행 실패 원인이 많아지고 Phase 0 검증 범위가 흐려진다. 따라서 각 기술은 실제 사용 단계에서 설정, 코드, 테스트, 문서를 함께 추가한다.

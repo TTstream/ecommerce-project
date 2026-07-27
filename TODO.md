@@ -11,6 +11,7 @@
 - [x] 공통 예외 처리 작성
 - [x] Swagger 설정 작성
 - [x] Gradle Wrapper 추가
+- [x] 초기 설정 설명 문서 작성
 - [x] 기본 테스트 실행
 - [x] Docker Compose 설정 문법 검증
 - [ ] PostgreSQL 연결 검증
