@@ -1,0 +1,31 @@
+# CommerceFlow
+
+Java/Spring 기반 이커머스 백엔드 포트폴리오 프로젝트입니다.
+
+## Current Phase
+
+Phase 0. 프로젝트 준비
+
+## Tech Stack
+
+- Java 21
+- Spring Boot 3.x
+- Spring Web
+- Spring Data JPA
+- PostgreSQL
+- Redis
+- Flyway
+- OpenAPI / Swagger
+- Docker Compose
+
+## Local Infrastructure
+
+```bash
+docker compose up -d
+```
+
+## API Docs
+
+```text
+http://localhost:8080/swagger-ui.html
+```
