@@ -13,7 +13,7 @@ public record ApiResponse<T>(
         return new ApiResponse<>(true, data, null, LocalDateTime.now());
     }
 
-    public static ApiResponse<Void> success() {
+    public static ApiResponse<Void> successWithoutData() {
         return new ApiResponse<>(true, null, null, LocalDateTime.now());
     }
 

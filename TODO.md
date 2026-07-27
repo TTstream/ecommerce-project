@@ -10,10 +10,15 @@
 - [x] 공통 응답 형식 작성
 - [x] 공통 예외 처리 작성
 - [x] Swagger 설정 작성
-- [ ] Gradle Wrapper 추가
+- [x] Gradle Wrapper 추가
+- [x] 기본 테스트 실행
+- [x] Docker Compose 설정 문법 검증
 - [ ] PostgreSQL 연결 검증
 - [ ] Redis 연결 검증
-- [ ] 기본 테스트 실행
+
+### Blocked
+
+- PostgreSQL/Redis 컨테이너 기동 검증은 Docker Desktop 엔진 실행 후 진행한다.
 
 ## Next
 

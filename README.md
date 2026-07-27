@@ -24,6 +24,20 @@ Phase 0. 프로젝트 준비
 docker compose up -d
 ```
 
+Docker Desktop must be running before executing Docker Compose commands on Windows.
+
+## Build and Test
+
+```bash
+./gradlew test
+```
+
+On Windows PowerShell:
+
+```powershell
+.\gradlew.bat test
+```
+
 ## API Docs
 
 ```text
