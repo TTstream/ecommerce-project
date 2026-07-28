@@ -16,7 +16,9 @@
 - [x] Docker Compose 설정 문법 검증
 - [x] PostgreSQL 연결 검증
 - [x] Redis 연결 검증
+- [x] Health Check API 테스트 작성
+- [x] Swagger/OpenAPI 접근 테스트 작성
 
 ## Next
 
-- Phase 0 Swagger와 Health Check 브라우저 접근 확인
+- Phase 0 정리 후 Phase 1 회원과 인증 설계

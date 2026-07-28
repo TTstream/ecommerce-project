@@ -76,6 +76,41 @@ application-test.yml
 
 `application-test.yml`은 테스트 실행을 위한 설정이다. 현재는 빠른 context 테스트를 위해 H2를 사용하고 Flyway를 비활성화한다. 운영과 유사한 통합 테스트가 필요한 단계에서는 Testcontainers PostgreSQL을 별도로 사용한다.
 
+## Health Check and Swagger
+
+기본 Health Check API는 다음 경로로 제공한다.
+
+```text
+GET /api/v1/health
+```
+
+예상 응답은 공통 응답 형식을 따른다.
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "UP"
+  },
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
+
+Swagger UI는 애플리케이션 실행 후 브라우저에서 접속한다.
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+OpenAPI JSON 문서는 다음 경로에서 확인할 수 있다.
+
+```text
+http://localhost:8080/v3/api-docs
+```
+
+테스트에서는 브라우저를 직접 띄우지 않고 `/api/v1/health`, `/v3/api-docs`, `/swagger-ui/index.html` 엔드포인트를 MockMvc로 확인한다. 이렇게 하면 Swagger 설정이 깨졌는지 자동 테스트에서 잡을 수 있다.
+
 ## Verification
 
 현재 검증된 항목은 다음과 같다.
@@ -99,6 +134,9 @@ Redis container: healthy
 Redis ping: PONG
 Spring Boot local profile startup: success
 Gradle test: success
+Health Check API smoke test: success
+OpenAPI docs smoke test: success
+Swagger UI smoke test: success
 ```
 
 `bootRun` 검증은 web server를 계속 띄우지 않기 위해 `--spring.main.web-application-type=none` 옵션을 사용한다. 이 방식은 PostgreSQL, Flyway, JPA 초기화가 정상인지 빠르게 확인하기 위한 것이다.
