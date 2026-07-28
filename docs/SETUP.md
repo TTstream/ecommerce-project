@@ -82,7 +82,23 @@ application-test.yml
 
 ```text
 docker compose config
+docker compose up -d
+docker compose ps
+docker exec commerceflow-postgresql pg_isready -U commerceflow -d commerceflow
+docker exec commerceflow-redis redis-cli ping
 .\gradlew.bat test
+.\gradlew.bat bootRun --args="--spring.main.web-application-type=none"
 ```
 
-PostgreSQL과 Redis 실제 연결 검증은 Docker Desktop 엔진 실행 후 진행한다.
+검증 결과는 다음과 같다.
+
+```text
+PostgreSQL container: healthy
+PostgreSQL pg_isready: accepting connections
+Redis container: healthy
+Redis ping: PONG
+Spring Boot local profile startup: success
+Gradle test: success
+```
+
+`bootRun` 검증은 web server를 계속 띄우지 않기 위해 `--spring.main.web-application-type=none` 옵션을 사용한다. 이 방식은 PostgreSQL, Flyway, JPA 초기화가 정상인지 빠르게 확인하기 위한 것이다.

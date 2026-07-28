@@ -14,13 +14,9 @@
 - [x] 초기 설정 설명 문서 작성
 - [x] 기본 테스트 실행
 - [x] Docker Compose 설정 문법 검증
-- [ ] PostgreSQL 연결 검증
-- [ ] Redis 연결 검증
-
-### Blocked
-
-- PostgreSQL/Redis 컨테이너 기동 검증은 Docker Desktop 엔진 실행 후 진행한다.
+- [x] PostgreSQL 연결 검증
+- [x] Redis 연결 검증
 
 ## Next
 
-- Phase 0 검증 완료 후 Phase 1 회원과 인증 설계
+- Phase 0 Swagger와 Health Check 브라우저 접근 확인
