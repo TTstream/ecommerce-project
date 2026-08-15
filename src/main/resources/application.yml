@@ -3,6 +3,10 @@ spring:
     name: commerceflow
   profiles:
     active: local
+  data:
+    redis:
+      repositories:
+        enabled: false
 
 server:
   port: 8080

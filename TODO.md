@@ -19,6 +19,22 @@
 - [x] Health Check API 테스트 작성
 - [x] Swagger/OpenAPI 접근 테스트 작성
 
+## Phase 1. 회원과 인증
+
+- [x] Member Entity 생성
+- [x] members Flyway migration 작성
+- [x] 회원가입 API 작성
+- [x] 비밀번호 BCrypt 암호화
+- [x] 이메일 중복 검증
+- [x] 회원가입 테스트 작성
+- [x] 회원가입 API 문서 작성
+- [x] members 스키마 문서 작성
+- [ ] 로그인 API 작성
+- [ ] JWT 발급
+- [ ] Refresh Token Redis 저장
+- [ ] 인증 API 접근 제어
+- [ ] 권한별 접근 제어
+
 ## Next
 
-- Phase 0 정리 후 Phase 1 회원과 인증 설계
+- Phase 1-2 로그인 API와 JWT 설계

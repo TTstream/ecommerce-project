@@ -90,3 +90,34 @@ Phase 0의 Docker Compose에는 PostgreSQL과 Redis만 포함했다.
 Kafka, Prometheus, Grafana도 최종 명세에는 포함되어 있지만, 아직 해당 기능을 사용하는 코드가 없다.
 
 초기부터 모든 인프라를 올리면 실행 실패 원인이 많아지고 Phase 0 검증 범위가 흐려진다. 따라서 각 기술은 실제 사용 단계에서 설정, 코드, 테스트, 문서를 함께 추가한다.
+
+## 6. Member Signup as the First Phase 1 Slice
+
+Phase 1은 회원가입, 로그인, JWT, Refresh Token, 권한 처리를 포함한다.
+
+첫 구현 범위는 회원가입으로 제한했다.
+
+이유는 다음과 같다.
+
+- 회원가입은 인증 기능의 기반 데이터인 Member를 먼저 만든다.
+- 로그인과 JWT는 Member 저장 구조와 비밀번호 암호화가 안정된 뒤 붙이는 편이 테스트 범위가 명확하다.
+- 한 번에 Refresh Token과 Redis까지 붙이면 실패 원인이 DB, Security, JWT, Redis로 넓어진다.
+- 명세의 원칙처럼 기능 단위로 설계, 구현, 테스트, 문서화를 끝내기 위함이다.
+
+이번 단계에서는 Spring Security를 추가하되 인증 필터나 JWT는 만들지 않는다. Spring Security는 BCrypt `PasswordEncoder`를 사용하고, 이후 인증/인가 설정을 자연스럽게 확장하기 위한 기반으로만 사용한다.
+
+Spring Security가 기본 개발용 사용자를 자동 생성하지 않도록 임시 `UserDetailsService` bean을 등록했다. 실제 로그인 단계에서는 이 bean을 회원 조회 기반 구현으로 교체한다.
+
+Spring Data Redis Repository 스캔은 비활성화했다. 이 프로젝트에서 Redis는 Refresh Token, 캐시, 인기 상품, 분산 락 용도로 사용할 예정이며, JPA Entity를 Redis Repository 후보로 스캔할 필요가 없기 때문이다.
+
+회원가입 트랜잭션은 application service에 둔다.
+
+```text
+MemberController
+-> MemberSignupService @Transactional
+-> MemberRepository
+```
+
+Controller는 요청 검증과 응답 변환만 담당하고, 이메일 중복 확인과 비밀번호 암호화, 저장은 service에서 처리한다.
+
+이메일 중복은 application service에서 먼저 검사하고, DB unique constraint로 최종 방어한다. 동시 요청에서는 두 요청이 application level 검사를 모두 통과할 수 있으므로, DB 제약 조건이 마지막 정합성 보장선이다.
