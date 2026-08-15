@@ -29,12 +29,17 @@
 - [x] 회원가입 테스트 작성
 - [x] 회원가입 API 문서 작성
 - [x] members 스키마 문서 작성
-- [ ] 로그인 API 작성
-- [ ] JWT 발급
+- [x] 로그인 API 작성
+- [x] JWT 발급
+- [x] JWT 인증 필터 작성
+- [x] 인증 실패 공통 응답 처리
+- [x] 내 프로필 조회 API 작성
+- [x] 로그인/JWT 테스트 작성
+- [x] 보안 문서 작성
 - [ ] Refresh Token Redis 저장
-- [ ] 인증 API 접근 제어
+- [x] 인증 API 접근 제어
 - [ ] 권한별 접근 제어
 
 ## Next
 
-- Phase 1-2 로그인 API와 JWT 설계
+- Phase 1-3 Refresh Token Redis 저장과 토큰 재발급 설계

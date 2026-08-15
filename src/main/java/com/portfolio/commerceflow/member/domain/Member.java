@@ -64,4 +64,8 @@ public class Member {
     public static Member createUser(String email, String encodedPassword, String name) {
         return new Member(email, encodedPassword, name, Role.USER, MemberStatus.ACTIVE);
     }
+
+    public boolean isActive() {
+        return status == MemberStatus.ACTIVE;
+    }
 }

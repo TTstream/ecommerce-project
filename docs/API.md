@@ -105,6 +105,76 @@ name: required, max 50
 
 이미 사용 중인 이메일이면 `DUPLICATED_EMAIL`을 반환한다.
 
+## Login
+
+```http
+POST /api/v1/auth/login
+```
+
+이메일과 비밀번호로 로그인하고 Access Token을 발급한다.
+
+### Request
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password1"
+}
+```
+
+### Response: 200 OK
+
+```json
+{
+  "success": true,
+  "data": {
+    "tokenType": "Bearer",
+    "accessToken": "eyJ...",
+    "expiresIn": 1800
+  },
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
+
+`expiresIn` 단위는 초다.
+
+### Error: 401 Unauthorized
+
+이메일이 존재하지 않거나 비밀번호가 틀리면 `INVALID_CREDENTIALS`를 반환한다.
+
+계정 존재 여부를 외부에 노출하지 않기 위해 두 상황 모두 같은 에러 코드를 사용한다.
+
+## My Profile
+
+```http
+GET /api/v1/members/me
+Authorization: Bearer {accessToken}
+```
+
+인증된 회원의 프로필을 조회한다.
+
+### Response: 200 OK
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "tester",
+    "role": "USER",
+    "status": "ACTIVE"
+  },
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
+
+### Error: 401 Unauthorized
+
+Access Token이 없거나 유효하지 않으면 `UNAUTHORIZED`를 반환한다.
+
 ## Swagger
 
 Swagger UI는 다음 주소에서 확인한다.

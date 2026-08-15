@@ -76,6 +76,18 @@ application-test.yml
 
 `application-test.yml`은 테스트 실행을 위한 설정이다. 현재는 빠른 context 테스트를 위해 H2를 사용하고 Flyway를 비활성화한다. 운영과 유사한 통합 테스트가 필요한 단계에서는 Testcontainers PostgreSQL을 별도로 사용한다.
 
+## Environment Variables
+
+운영 환경에서는 secret을 설정 파일에 직접 쓰지 않고 환경변수로 주입한다.
+
+현재 필요한 환경변수는 다음과 같다.
+
+```text
+JWT_SECRET
+```
+
+local 프로필은 개발 편의를 위해 기본값을 제공한다. dev/prod 프로필을 추가할 때는 기본값 없는 환경변수 참조를 사용해 secret 누락 시 애플리케이션이 실패하도록 구성한다.
+
 ## Health Check and Swagger
 
 기본 Health Check API는 다음 경로로 제공한다.
@@ -137,6 +149,8 @@ Gradle test: success
 Health Check API smoke test: success
 OpenAPI docs smoke test: success
 Swagger UI smoke test: success
+Login API test: success
+JWT protected API test: success
 ```
 
 `bootRun` 검증은 web server를 계속 띄우지 않기 위해 `--spring.main.web-application-type=none` 옵션을 사용한다. 이 방식은 PostgreSQL, Flyway, JPA 초기화가 정상인지 빠르게 확인하기 위한 것이다.

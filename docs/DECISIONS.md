@@ -121,3 +121,46 @@ MemberController
 Controller는 요청 검증과 응답 변환만 담당하고, 이메일 중복 확인과 비밀번호 암호화, 저장은 service에서 처리한다.
 
 이메일 중복은 application service에서 먼저 검사하고, DB unique constraint로 최종 방어한다. 동시 요청에서는 두 요청이 application level 검사를 모두 통과할 수 있으므로, DB 제약 조건이 마지막 정합성 보장선이다.
+
+## 7. JWT Login Before Refresh Token
+
+Phase 1-2에서는 로그인과 Access Token 발급까지만 구현했다.
+
+Refresh Token, Redis 저장, 로그아웃, 토큰 재발급은 다음 단계로 분리한다.
+
+이유는 다음과 같다.
+
+- Access Token 인증 흐름이 안정되어야 Refresh Token 회전 전략을 붙일 수 있다.
+- Redis 저장까지 한 번에 구현하면 인증 실패 원인이 JWT, DB, Redis로 넓어진다.
+- 로그인 성공, 로그인 실패, 보호 API 접근 제어를 먼저 테스트로 고정하는 편이 변경 범위를 명확히 한다.
+
+JWT 설정은 `app.jwt` prefix로 분리했다.
+
+```yaml
+app:
+  jwt:
+    issuer: commerceflow
+    access-token-validity: 30m
+    secret: ${JWT_SECRET}
+```
+
+`issuer`와 만료시간은 공통 설정으로 둘 수 있지만, secret은 운영 환경에서 반드시 환경변수로 주입한다. local/test 프로필에는 개발과 테스트 실행을 위한 값만 둔다.
+
+JWT 인증은 `OncePerRequestFilter` 기반으로 처리한다.
+
+```text
+Authorization: Bearer {accessToken}
+-> JwtAuthenticationFilter
+-> JwtTokenProvider
+-> SecurityContext
+-> @AuthenticationPrincipal
+```
+
+인증 실패와 인가 실패 응답은 Spring Security 기본 HTML/빈 응답을 사용하지 않고 공통 JSON 응답으로 맞췄다.
+
+```text
+401 UNAUTHORIZED
+403 FORBIDDEN
+```
+
+로그인 실패 시에는 이메일 존재 여부를 노출하지 않기 위해 존재하지 않는 이메일과 틀린 비밀번호 모두 `INVALID_CREDENTIALS`를 반환한다.
