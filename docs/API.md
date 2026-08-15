@@ -111,7 +111,7 @@ name: required, max 50
 POST /api/v1/auth/login
 ```
 
-이메일과 비밀번호로 로그인하고 Access Token을 발급한다.
+이메일과 비밀번호로 로그인하고 Access Token과 Refresh Token을 발급한다.
 
 ### Request
 
@@ -130,20 +130,81 @@ POST /api/v1/auth/login
   "data": {
     "tokenType": "Bearer",
     "accessToken": "eyJ...",
-    "expiresIn": 1800
+    "accessTokenExpiresIn": 1800,
+    "refreshToken": "eyJ...",
+    "refreshTokenExpiresIn": 1209600
   },
   "error": null,
   "timestamp": "2026-01-01T00:00:00"
 }
 ```
 
-`expiresIn` 단위는 초다.
+만료시간 단위는 초다.
 
 ### Error: 401 Unauthorized
 
 이메일이 존재하지 않거나 비밀번호가 틀리면 `INVALID_CREDENTIALS`를 반환한다.
 
 계정 존재 여부를 외부에 노출하지 않기 위해 두 상황 모두 같은 에러 코드를 사용한다.
+
+## Token Reissue
+
+```http
+POST /api/v1/auth/reissue
+```
+
+Refresh Token으로 새 Access Token과 새 Refresh Token을 발급한다.
+
+### Request
+
+```json
+{
+  "refreshToken": "eyJ..."
+}
+```
+
+### Response: 200 OK
+
+```json
+{
+  "success": true,
+  "data": {
+    "tokenType": "Bearer",
+    "accessToken": "eyJ...",
+    "accessTokenExpiresIn": 1800,
+    "refreshToken": "eyJ...",
+    "refreshTokenExpiresIn": 1209600
+  },
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
+
+재발급 성공 시 Refresh Token도 회전한다. 이전 Refresh Token은 더 이상 사용할 수 없다.
+
+### Error: 401 Unauthorized
+
+Refresh Token이 유효하지 않거나 Redis에 저장된 토큰과 일치하지 않으면 `INVALID_REFRESH_TOKEN`을 반환한다.
+
+## Logout
+
+```http
+POST /api/v1/auth/logout
+Authorization: Bearer {accessToken}
+```
+
+현재 로그인한 회원의 Refresh Token을 Redis에서 삭제한다.
+
+### Response: 200 OK
+
+```json
+{
+  "success": true,
+  "data": null,
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
 
 ## My Profile
 

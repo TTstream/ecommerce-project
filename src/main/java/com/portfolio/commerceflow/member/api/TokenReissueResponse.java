@@ -1,6 +1,6 @@
 package com.portfolio.commerceflow.member.api;
 
-public record LoginResponse(
+public record TokenReissueResponse(
         String tokenType,
         String accessToken,
         long accessTokenExpiresIn,
@@ -8,12 +8,12 @@ public record LoginResponse(
         long refreshTokenExpiresIn
 ) {
 
-    public static LoginResponse bearer(
+    public static TokenReissueResponse bearer(
             String accessToken,
             long accessTokenExpiresIn,
             String refreshToken,
             long refreshTokenExpiresIn
     ) {
-        return new LoginResponse("Bearer", accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn);
+        return new TokenReissueResponse("Bearer", accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresIn);
     }
 }

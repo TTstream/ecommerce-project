@@ -164,3 +164,36 @@ Authorization: Bearer {accessToken}
 ```
 
 로그인 실패 시에는 이메일 존재 여부를 노출하지 않기 위해 존재하지 않는 이메일과 틀린 비밀번호 모두 `INVALID_CREDENTIALS`를 반환한다.
+
+## 8. Refresh Token Stored in Redis
+
+Phase 1-3에서는 Refresh Token을 Redis에 저장했다.
+
+선택 이유는 다음과 같다.
+
+- Access Token은 짧은 만료시간을 가진 stateless 토큰으로 유지한다.
+- Refresh Token은 서버 저장소에 보관해 로그아웃과 재발급 제어가 가능하게 한다.
+- Redis TTL을 사용하면 Refresh Token 만료를 별도 배치 없이 처리할 수 있다.
+- 추후 토큰 탈취 대응, 강제 로그아웃, 기기별 세션 관리로 확장할 수 있다.
+
+Redis key는 회원 ID를 기준으로 한다.
+
+```text
+auth:refresh-token:{memberId}
+```
+
+현재는 회원당 하나의 Refresh Token만 유지한다. 같은 계정으로 다시 로그인하면 기존 Refresh Token을 새 값으로 덮어쓴다.
+
+재발급 시에는 Refresh Token을 회전한다.
+
+```text
+old refresh token
+-> Redis 저장값과 일치하는지 확인
+-> new access token 발급
+-> new refresh token 발급
+-> Redis 저장값 교체
+```
+
+이 방식은 이전 Refresh Token 재사용을 막는다. 탈취된 Refresh Token이 이미 회전된 뒤 사용되면 Redis 저장값과 일치하지 않아 거부된다.
+
+테스트에서는 외부 Redis 상태에 의존하지 않도록 `RefreshTokenStore`를 메모리 구현으로 대체했다. 운영 코드는 `RedisRefreshTokenStore`를 사용한다. Redis 자체 연결은 Phase 0에서 별도로 검증했다.

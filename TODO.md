@@ -36,10 +36,14 @@
 - [x] 내 프로필 조회 API 작성
 - [x] 로그인/JWT 테스트 작성
 - [x] 보안 문서 작성
-- [ ] Refresh Token Redis 저장
+- [x] Refresh Token Redis 저장
+- [x] Refresh Token 재발급 API 작성
+- [x] Refresh Token 회전 처리
+- [x] 로그아웃 API 작성
+- [x] Refresh Token 테스트 작성
 - [x] 인증 API 접근 제어
 - [ ] 권한별 접근 제어
 
 ## Next
 
-- Phase 1-3 Refresh Token Redis 저장과 토큰 재발급 설계
+- Phase 1-4 권한별 접근 제어와 관리자 접근 테스트 설계

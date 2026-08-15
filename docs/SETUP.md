@@ -151,6 +151,20 @@ OpenAPI docs smoke test: success
 Swagger UI smoke test: success
 Login API test: success
 JWT protected API test: success
+Refresh Token reissue test: success
+Logout refresh token deletion test: success
+Local HTTP signup/login/reissue with Redis storage: success
 ```
+
+Refresh Token Redis 저장은 로컬 애플리케이션을 임시 실행한 뒤 실제 HTTP 요청으로도 확인했다.
+
+```text
+POST /api/v1/members/signup
+POST /api/v1/auth/login
+Redis key auth:refresh-token:{memberId} created
+POST /api/v1/auth/reissue
+```
+
+검증용 회원과 Redis key는 확인 후 삭제했다.
 
 `bootRun` 검증은 web server를 계속 띄우지 않기 위해 `--spring.main.web-application-type=none` 옵션을 사용한다. 이 방식은 PostgreSQL, Flyway, JPA 초기화가 정상인지 빠르게 확인하기 위한 것이다.

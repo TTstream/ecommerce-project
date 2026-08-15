@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class JwtTokenProvider {
 
     private static final String EMAIL_CLAIM = "email";
     private static final String ROLE_CLAIM = "role";
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
 
     private final JwtProperties jwtProperties;
     private final Clock clock;
@@ -35,18 +37,11 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(Long memberId, String email, Role role) {
-        Instant now = clock.instant();
-        Instant expiresAt = now.plus(jwtProperties.accessTokenValidity());
+        return createToken(memberId, email, role, JwtTokenType.ACCESS, jwtProperties.accessTokenValidity());
+    }
 
-        return Jwts.builder()
-                .issuer(jwtProperties.issuer())
-                .subject(String.valueOf(memberId))
-                .claim(EMAIL_CLAIM, email)
-                .claim(ROLE_CLAIM, role.name())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
-                .signWith(secretKey)
-                .compact();
+    public String createRefreshToken(Long memberId, String email, Role role) {
+        return createToken(memberId, email, role, JwtTokenType.REFRESH, jwtProperties.refreshTokenValidity());
     }
 
     public JwtAuthenticationPayload parse(String token) {
@@ -60,7 +55,8 @@ public class JwtTokenProvider {
         return new JwtAuthenticationPayload(
                 Long.valueOf(claims.getSubject()),
                 claims.get(EMAIL_CLAIM, String.class),
-                Role.valueOf(claims.get(ROLE_CLAIM, String.class))
+                Role.valueOf(claims.get(ROLE_CLAIM, String.class)),
+                JwtTokenType.valueOf(claims.get(TOKEN_TYPE_CLAIM, String.class))
         );
     }
 
@@ -75,5 +71,48 @@ public class JwtTokenProvider {
 
     public long accessTokenExpiresInSeconds() {
         return jwtProperties.accessTokenValidity().toSeconds();
+    }
+
+    public long refreshTokenExpiresInSeconds() {
+        return jwtProperties.refreshTokenValidity().toSeconds();
+    }
+
+    public boolean isAccessToken(String token) {
+        try {
+            return parse(token).tokenType() == JwtTokenType.ACCESS;
+        } catch (JwtException | IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            return parse(token).tokenType() == JwtTokenType.REFRESH;
+        } catch (JwtException | IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private String createToken(
+            Long memberId,
+            String email,
+            Role role,
+            JwtTokenType tokenType,
+            java.time.Duration validity
+    ) {
+        Instant now = clock.instant();
+        Instant expiresAt = now.plus(validity);
+
+        return Jwts.builder()
+                .issuer(jwtProperties.issuer())
+                .subject(String.valueOf(memberId))
+                .id(UUID.randomUUID().toString())
+                .claim(EMAIL_CLAIM, email)
+                .claim(ROLE_CLAIM, role.name())
+                .claim(TOKEN_TYPE_CLAIM, tokenType.name())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(expiresAt))
+                .signWith(secretKey)
+                .compact();
     }
 }

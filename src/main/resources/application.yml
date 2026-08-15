@@ -25,3 +25,4 @@ app:
   jwt:
     issuer: commerceflow
     access-token-validity: 30m
+    refresh-token-validity: 14d

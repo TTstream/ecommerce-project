@@ -9,13 +9,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portfolio.commerceflow.member.application.RefreshTokenStore;
 import com.portfolio.commerceflow.member.infrastructure.MemberRepository;
+import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,9 +42,13 @@ class AuthControllerTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private TestRefreshTokenStore refreshTokenStore;
+
     @BeforeEach
     void setUp() {
         memberRepository.deleteAll();
+        refreshTokenStore.clear();
     }
 
     @Test
@@ -56,7 +67,9 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.data.accessToken", notNullValue()))
-                .andExpect(jsonPath("$.data.expiresIn").value(1800))
+                .andExpect(jsonPath("$.data.accessTokenExpiresIn").value(1800))
+                .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshTokenExpiresIn").value(1209600))
                 .andExpect(jsonPath("$.error", nullValue()));
     }
 
@@ -102,6 +115,73 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"));
     }
 
+    @Test
+    void reissueRotatesRefreshTokenAndReturnsNewTokens() throws Exception {
+        signup("user@example.com", "password1", "tester");
+        JsonNode loginResponse = login("user@example.com", "password1");
+        String oldRefreshToken = loginResponse.get("data").get("refreshToken").asText();
+
+        Map<String, String> request = Map.of("refreshToken", oldRefreshToken);
+
+        String response = mockMvc.perform(post("/api/v1/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.data.accessToken", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String newRefreshToken = objectMapper.readTree(response).get("data").get("refreshToken").asText();
+
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_REFRESH_TOKEN"));
+
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("refreshToken", newRefreshToken))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void reissueRejectsAccessToken() throws Exception {
+        signup("user@example.com", "password1", "tester");
+        String accessToken = loginAndExtractAccessToken("user@example.com", "password1");
+
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("refreshToken", accessToken))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_REFRESH_TOKEN"));
+    }
+
+    @Test
+    void logoutDeletesRefreshToken() throws Exception {
+        signup("user@example.com", "password1", "tester");
+        JsonNode loginResponse = login("user@example.com", "password1");
+        String accessToken = loginResponse.get("data").get("accessToken").asText();
+        String refreshToken = loginResponse.get("data").get("refreshToken").asText();
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data", nullValue()))
+                .andExpect(jsonPath("$.error", nullValue()));
+
+        mockMvc.perform(post("/api/v1/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_REFRESH_TOKEN"));
+    }
+
     private void signup(String email, String password, String name) throws Exception {
         Map<String, String> request = Map.of(
                 "email", email,
@@ -116,6 +196,10 @@ class AuthControllerTest {
     }
 
     private String loginAndExtractAccessToken(String email, String password) throws Exception {
+        return login(email, password).get("data").get("accessToken").asText();
+    }
+
+    private JsonNode login(String email, String password) throws Exception {
         Map<String, String> request = Map.of(
                 "email", email,
                 "password", password
@@ -129,7 +213,40 @@ class AuthControllerTest {
                 .getResponse()
                 .getContentAsString();
 
-        JsonNode jsonNode = objectMapper.readTree(response);
-        return jsonNode.get("data").get("accessToken").asText();
+        return objectMapper.readTree(response);
+    }
+
+    @TestConfiguration
+    static class AuthControllerTestConfig {
+
+        @Bean
+        @Primary
+        TestRefreshTokenStore testRefreshTokenStore() {
+            return new TestRefreshTokenStore();
+        }
+    }
+
+    static class TestRefreshTokenStore implements RefreshTokenStore {
+
+        private final Map<Long, String> tokens = new ConcurrentHashMap<>();
+
+        @Override
+        public void save(Long memberId, String refreshToken, Duration ttl) {
+            tokens.put(memberId, refreshToken);
+        }
+
+        @Override
+        public Optional<String> findByMemberId(Long memberId) {
+            return Optional.ofNullable(tokens.get(memberId));
+        }
+
+        @Override
+        public void deleteByMemberId(Long memberId) {
+            tokens.remove(memberId);
+        }
+
+        void clear() {
+            tokens.clear();
+        }
     }
 }

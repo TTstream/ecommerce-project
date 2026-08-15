@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.isValid(token)) {
+        if (token != null && jwtTokenProvider.isAccessToken(token)) {
             JwtAuthenticationPayload payload = jwtTokenProvider.parse(token);
             JwtAuthenticatedMember principal = new JwtAuthenticatedMember(payload.memberId(), payload.email(), payload.role());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

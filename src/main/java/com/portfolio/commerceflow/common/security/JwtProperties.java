@@ -7,7 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record JwtProperties(
         String secret,
         String issuer,
-        Duration accessTokenValidity
+        Duration accessTokenValidity,
+        Duration refreshTokenValidity
 ) {
 
     public JwtProperties {
@@ -19,6 +20,9 @@ public record JwtProperties(
         }
         if (accessTokenValidity == null || accessTokenValidity.isNegative() || accessTokenValidity.isZero()) {
             throw new IllegalArgumentException("JWT access token validity must be positive.");
+        }
+        if (refreshTokenValidity == null || refreshTokenValidity.isNegative() || refreshTokenValidity.isZero()) {
+            throw new IllegalArgumentException("JWT refresh token validity must be positive.");
         }
     }
 }

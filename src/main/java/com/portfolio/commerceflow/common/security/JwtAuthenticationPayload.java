@@ -5,6 +5,7 @@ import com.portfolio.commerceflow.member.domain.Role;
 public record JwtAuthenticationPayload(
         Long memberId,
         String email,
-        Role role
+        Role role,
+        JwtTokenType tokenType
 ) {
 }
