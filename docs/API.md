@@ -244,6 +244,14 @@ Swagger UI는 다음 주소에서 확인한다.
 http://localhost:8080/swagger-ui.html
 ```
 
+JWT 인증이 필요한 API를 테스트할 때는 Swagger UI의 `Authorize` 버튼에 Access Token을 입력한다.
+
+```text
+Bearer {accessToken}
+```
+
+`/api/v1/members/me`, `/api/v1/auth/logout` 같은 보호 API에는 Refresh Token이 아니라 Access Token을 사용한다.
+
 OpenAPI JSON은 다음 주소에서 확인한다.
 
 ```text

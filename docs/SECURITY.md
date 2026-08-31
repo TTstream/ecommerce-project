@@ -95,6 +95,17 @@ Client
 -> Controller @AuthenticationPrincipal 사용
 ```
 
+Swagger UI에서 보호 API를 테스트할 수 있도록 OpenAPI 보안 스키마에 HTTP Bearer JWT를 등록한다.
+
+```text
+security scheme: bearerAuth
+type: http
+scheme: bearer
+bearerFormat: JWT
+```
+
+이 설정은 Swagger UI에 `Authorize` 버튼을 보여주기 위한 문서 설정이다. 실제 인증 처리는 Spring Security의 `JwtAuthenticationFilter`가 담당한다.
+
 ## Failure Response
 
 인증이 없거나 토큰이 유효하지 않으면 `UNAUTHORIZED`를 반환한다.
