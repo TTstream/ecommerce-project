@@ -247,8 +247,10 @@ http://localhost:8080/swagger-ui.html
 JWT 인증이 필요한 API를 테스트할 때는 Swagger UI의 `Authorize` 버튼에 Access Token을 입력한다.
 
 ```text
-Bearer {accessToken}
+{accessToken}
 ```
+
+현재 Swagger 설정은 HTTP Bearer 방식이므로 `Bearer` 문구는 Swagger가 자동으로 붙인다. 입력창에는 로그인 응답의 `accessToken` 값만 넣는다.
 
 `/api/v1/members/me`, `/api/v1/auth/logout` 같은 보호 API에는 Refresh Token이 아니라 Access Token을 사용한다.
 

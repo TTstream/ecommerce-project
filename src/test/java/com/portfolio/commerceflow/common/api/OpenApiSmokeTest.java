@@ -28,7 +28,8 @@ class OpenApiSmokeTest {
                 .andExpect(jsonPath("$.info.title").value("CommerceFlow API"))
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.type").value("http"))
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
-                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"));
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"))
+                .andExpect(jsonPath("$.security[0].bearerAuth").exists());
     }
 
     @Test

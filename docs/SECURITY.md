@@ -104,7 +104,7 @@ scheme: bearer
 bearerFormat: JWT
 ```
 
-이 설정은 Swagger UI에 `Authorize` 버튼을 보여주기 위한 문서 설정이다. 실제 인증 처리는 Spring Security의 `JwtAuthenticationFilter`가 담당한다.
+이 설정은 Swagger UI에 `Authorize` 버튼을 보여주고, 요청에 `Authorization: Bearer {accessToken}` 헤더를 붙이기 위한 문서 설정이다. 실제 인증 처리는 Spring Security의 `JwtAuthenticationFilter`가 담당한다.
 
 ## Failure Response
 
