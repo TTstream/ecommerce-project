@@ -197,3 +197,23 @@ old refresh token
 이 방식은 이전 Refresh Token 재사용을 막는다. 탈취된 Refresh Token이 이미 회전된 뒤 사용되면 Redis 저장값과 일치하지 않아 거부된다.
 
 테스트에서는 외부 Redis 상태에 의존하지 않도록 `RefreshTokenStore`를 메모리 구현으로 대체했다. 운영 코드는 `RedisRefreshTokenStore`를 사용한다. Redis 자체 연결은 Phase 0에서 별도로 검증했다.
+
+## 9. Admin Authorization Smoke API
+
+Phase 1-4에서는 실제 관리자 비즈니스 기능을 만들지 않고 관리자 전용 smoke API만 추가했다.
+
+이유는 다음과 같다.
+
+- Phase 1의 목표는 인증과 권한 처리의 기반을 완성하는 것이다.
+- 상품 등록, 주문 상태 변경 같은 실제 관리자 기능은 이후 도메인 Phase에 속한다.
+- 지금 필요한 것은 `ROLE_ADMIN` 접근 제어가 Spring Security에서 제대로 동작하는지 검증하는 것이다.
+
+따라서 `/api/v1/admin/health`를 추가해 다음 케이스를 테스트한다.
+
+```text
+미인증 요청 -> 401
+USER 요청 -> 403
+ADMIN 요청 -> 200
+```
+
+이 API는 운영 기능이라기보다 권한 체계가 깨지지 않도록 고정하는 smoke endpoint다. 실제 관리자 API가 생기면 동일한 `/api/v1/admin/**` 규칙 아래에서 확장한다.

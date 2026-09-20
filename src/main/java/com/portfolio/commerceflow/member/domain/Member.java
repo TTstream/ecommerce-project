@@ -65,6 +65,10 @@ public class Member {
         return new Member(email, encodedPassword, name, Role.USER, MemberStatus.ACTIVE);
     }
 
+    public static Member createAdmin(String email, String encodedPassword, String name) {
+        return new Member(email, encodedPassword, name, Role.ADMIN, MemberStatus.ACTIVE);
+    }
+
     public boolean isActive() {
         return status == MemberStatus.ACTIVE;
     }

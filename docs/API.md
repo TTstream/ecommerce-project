@@ -236,6 +236,38 @@ Authorization: Bearer {accessToken}
 
 Access Token이 없거나 유효하지 않으면 `UNAUTHORIZED`를 반환한다.
 
+## Admin Health
+
+```http
+GET /api/v1/admin/health
+Authorization: Bearer {adminAccessToken}
+```
+
+관리자 권한 접근 제어가 동작하는지 확인하기 위한 관리자 전용 smoke API다.
+
+실제 관리자 상품/주문 기능은 이후 Phase에서 구현한다.
+
+### Response: 200 OK
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ADMIN_UP"
+  },
+  "error": null,
+  "timestamp": "2026-01-01T00:00:00"
+}
+```
+
+### Error: 401 Unauthorized
+
+Access Token이 없거나 유효하지 않으면 `UNAUTHORIZED`를 반환한다.
+
+### Error: 403 Forbidden
+
+인증된 회원이 `ADMIN` 권한이 아니면 `FORBIDDEN`을 반환한다.
+
 ## Swagger
 
 Swagger UI는 다음 주소에서 확인한다.

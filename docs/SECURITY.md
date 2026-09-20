@@ -129,6 +129,31 @@ bearerFormat: JWT
 
 Refresh Token 재발급 실패는 `INVALID_REFRESH_TOKEN`을 반환한다.
 
+## Authorization
+
+권한은 JWT의 `role` claim을 Spring Security authority로 변환해 검사한다.
+
+```text
+USER  -> ROLE_USER
+ADMIN -> ROLE_ADMIN
+```
+
+관리자 API는 다음 경로 규칙으로 보호한다.
+
+```text
+/api/v1/admin/** requires ROLE_ADMIN
+```
+
+권한 테스트는 세 가지를 검증한다.
+
+```text
+No token -> 401 UNAUTHORIZED
+USER token -> 403 FORBIDDEN
+ADMIN token -> 200 OK
+```
+
+현재 `/api/v1/admin/health`는 권한 체계 검증용 smoke API다. 실제 관리자 기능은 상품/주문/쿠폰 Phase에서 구체 API로 교체 또는 확장한다.
+
 ## Operational Notes
 
 운영 배포 시 확인할 항목은 다음과 같다.
